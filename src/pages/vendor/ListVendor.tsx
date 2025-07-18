@@ -5,10 +5,6 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { AxiosError } from "axios";
 
-interface NullableTime {
-  Time: string;
-  Valid: boolean;
-}
 
 interface Vendor {
   vendor_id: string;
@@ -18,10 +14,6 @@ interface Vendor {
   id: number;
   created_at: string;
   created_by: string;
-  updated_at: NullableTime | null;
-  updated_by: string | null;
-  deleted_at: NullableTime | null;
-  deleted_by: string | null;
 }
 
 export default function VendorList() {
@@ -66,10 +58,6 @@ export default function VendorList() {
                 status: getEnumValue(item.status),
                 created_at: item.created_at,
                 created_by: item.created_by,
-                updated_at: item.updated_at || null,
-                updated_by: getStringValue(item.updated_by) || null,
-                deleted_at: item.deleted_at || null,
-                deleted_by: getStringValue(item.deleted_by) || null,
             };
         });
 

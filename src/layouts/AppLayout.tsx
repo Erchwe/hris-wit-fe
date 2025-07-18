@@ -11,7 +11,6 @@ import classNames from "classnames";
 // Hapus impor SidebarFolder karena tidak lagi digunakan
 // import SidebarFolder from "../../components/SidebarFolder";
 
-const StyledHiChartPie = () => <HiChartPie className="h-4 w-4 text-gray-500" />;
 const StyledHiCash = () => <HiCash className="h-5 w-5 text-gray-500" />;
 const StyledHiClipboardList = () => <HiClipboardList className="h-5 w-5 text-gray-500" />;
 const StyledHiBriefcase = () => <HiBriefcase className="h-5 w-5 text-gray-500" />;

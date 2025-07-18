@@ -58,18 +58,18 @@ export default function VendorDetail() {
         <div className="flex gap-4 mt-6">
           {/* Tombol Edit */}
           <button 
-              type="button" // Type button untuk mencegah submit form jika berada dalam form
-              onClick={() => navigate(`/inventaris/update/${data.inventaris_id}`)}
-              className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" // Gaya Tailwind CSS
+              type="button"
+              onClick={() => navigate(`/vendor/edit/${vendor.vendor_id}`)}
+              className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" 
           >
               Edit
           </button>
-          
+
           {/* Tombol Delete */}
           <button 
-              type="button" // Type button untuk mencegah submit form jika berada dalam form
+              type="button"
               onClick={handleDelete}
-              className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-2" // Gaya Tailwind CSS, tambah margin kiri
+              className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-2" 
           >
               Delete
           </button>

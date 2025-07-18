@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from '../../utils/api';
-import { Button, Card } from "flowbite-react";
+import { Card } from "flowbite-react";
 import { toast } from "react-toastify";
 
 interface Vendor {

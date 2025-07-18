@@ -14,18 +14,21 @@ interface Vendor {
 export default function VendorList() {
   const [data, setData] = useState<Vendor[]>([]);
   const navigate = useNavigate();
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await api.get("/vendor");
+        const res = await api.get("/vendor", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         setData(res.data.data);
       } catch (error) {
         toast.error("Gagal memuat data vendor");
       }
     };
     fetchData();
-  });
+  }, [token]);
 
   return (
     <div className="p-6">

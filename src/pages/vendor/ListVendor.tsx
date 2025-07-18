@@ -103,7 +103,6 @@ export default function VendorList() {
             <Table.HeadCell>Status</Table.HeadCell>
           </Table.Head>
           <Table.Body className="divide-y">
-            {console.log("Inside Table.Body. Current data length:", data.length)}
             {data.length === 0 ? (
                 <Table.Row>
                     <Table.Cell colSpan={3} className="text-center text-gray-500">Tidak ada data vendor yang tersedia.</Table.Cell>

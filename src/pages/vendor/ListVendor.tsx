@@ -4,11 +4,6 @@ import { Table } from "flowbite-react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
-interface SqlNullString {
-  String: string;
-  Valid: boolean;
-}
-
 interface NullableTime {
   Time: string;
   Valid: boolean;

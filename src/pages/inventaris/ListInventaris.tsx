@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from '../../utils/api.ts';
 import { Table, Button } from "flowbite-react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
@@ -20,62 +20,24 @@ interface AutoTableDidDrawPageHookData {
     table: any;
 }
 
-// Interface untuk SqlNullString dari Proyek.tsx
-interface SqlNullString {
-  String: string;
-  Valid: boolean;
-}
-
-// Interface untuk NullableTime dari Proyek.tsx
-interface NullableTime {
-  Time: string;
-  Valid: boolean;
-}
-
-// Gunakan fungsi decodeEnum dari Proyek.tsx
-const decodeEnum = (data: any): string => {
-  let valueToDecode = '';
-  if (typeof data === 'string') valueToDecode = data;
-  else if (data?.Valid && typeof data.String === 'string') valueToDecode = data.String;
-
-  if (valueToDecode) {
-    try { return atob(valueToDecode); } catch (e) { return valueToDecode; }
-  }
-  return '';
-};
-
-
-// Interface Inventaris disesuaikan dengan pola Proyek.tsx
 interface Inventaris {
   inventaris_id: string;
-  nama_inventaris: string; // Asumsi ini string biasa
+  nama_inventaris: string;
   tanggal_beli: string;
   harga: number;
-  image_url?: SqlNullString | null; // Objek {String, Valid} atau null
+  image_url?: string | null;
 
   brand_id: string;
-  nama_brand: SqlNullString | null; // Objek {String, Valid} atau null
+  nama_brand: string | null;
 
   vendor_id: string;
-  nama_vendor: SqlNullString | null; // Objek {String, Valid} atau null
+  nama_vendor: string | null;
 
   kategori_id: string;
-  nama_kategori: SqlNullString | null; // Objek {String, Valid} atau null
+  nama_kategori: string | null;
 
   ruangan_id: string;
-  nama_ruangan: SqlNullString | null; // Objek {String, Valid} atau null
-
-  id: number;
-  jumlah: number;
-  keterangan: SqlNullString | null;
-  old_inventory_code: SqlNullString | null;
-  status: any; // Untuk ENUM, gunakan 'any' atau buat interface lebih spesifik
-  created_at: string;
-  created_by: string;
-  updated_at: NullableTime | null;
-  updated_by: SqlNullString | null;
-  deleted_at: NullableTime | null;
-  deleted_by: SqlNullString | null;
+  nama_ruangan: string | null;
 }
 
 applyPlugin(jsPDF);
@@ -85,41 +47,43 @@ export default function InventoryList() {
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
-  const currentToken = token || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYWRtaW4tdGVzdCIsIm5hbWUiOiJBZG1pbiIsImVtYWlsIjoiYWRtaW5AdGVzdC5jb20iLCJyb2xlX2lkIjoiMTIzNDUifQ.Slightly_Different_Dummy_Token_For_Frontend_Dev";
-
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axios.get<{data: Inventaris[], message: string}>("https://hris-wit-be-api.onrender.com/inventaris/with-relations", {
-          headers: { Authorization: `Bearer ${currentToken}` },
+        const res = await api.get("/inventaris/with-relations", {
+          headers: { Authorization: `Bearer ${token}` },
         });
 
-        setData(res.data.data); // Hapus transformasi .map() jika interface sudah cocok
-        console.log("Fetched Inventory Data:", res.data.data); // Log data mentah
+        const cleaned: Inventaris[] = res.data.data.map((item: any) => ({
+          ...item,
+          image_url: item.image_url?.String ?? "",
+          vendor_id: item.vendor_id?.String ?? "",
+          nama_vendor: item.nama_vendor?.String ?? "",
+          brand_id: item.brand_id?.String ?? "",
+          nama_brand: item.nama_brand?.String ?? "",
+          kategori_id: item.kategori_id?.String ?? "",
+          nama_kategori: item.nama_kategori?.String ?? "",
+          ruangan_id: item.ruangan_id?.String ?? "",
+          nama_ruangan: item.nama_ruangan?.String ?? "",
+        }));
 
-        if (res.data.data.length === 0) {
-            toast.info("Tidak ada data inventaris.");
-        }
+        setData(cleaned);
       } catch (error) {
         toast.error("Gagal memuat data inventory");
         console.error("Fetch inventory error:", error);
-        if (axios.isAxiosError(error) && error.response) {
-            console.error("Error Response Data:", error.response.data);
-            console.error("Error Response Status:", error.response.status);
-        }
       }
     };
+
     fetchData();
-  }, [currentToken]);
+  }, [token]);
 
   const columns: ColumnDef<Inventaris>[] = [
     {
       accessorKey: 'image_url',
       header: 'Gambar',
       cell: info => (
-        // Akses .String dari SqlNullString
-        info.getValue()?.Valid ? (
-          <img src={info.getValue().String as string} alt="Preview" className="h-14 object-contain rounded border" />
+        info.getValue() ? (
+          <img src={info.getValue() as string} alt="Preview" className="h-14 object-contain rounded border" />
         ) : (
           "-"
         )
@@ -134,7 +98,7 @@ export default function InventoryList() {
     {
       accessorKey: 'nama_brand',
       header: 'Brand',
-      cell: info => (info.getValue() as SqlNullString)?.String || "-", // Akses .String
+      cell: info => info.getValue() || "-",
     },
     {
       accessorKey: 'tanggal_beli',
@@ -165,22 +129,17 @@ export default function InventoryList() {
     {
       accessorKey: 'nama_vendor',
       header: 'Vendor',
-      cell: info => (info.getValue() as SqlNullString)?.String || "-", // Akses .String
+      cell: info => info.getValue() || "-",
     },
     {
       accessorKey: 'nama_kategori',
       header: 'Kategori',
-      cell: info => (info.getValue() as SqlNullString)?.String || "-", // Akses .String
+      cell: info => info.getValue() || "-",
     },
     {
       accessorKey: 'nama_ruangan',
       header: 'Ruangan',
-      cell: info => (info.getValue() as SqlNullString)?.String || "-", // Akses .String
-    },
-    {
-      accessorKey: 'status',
-      header: 'Status Inventaris',
-      cell: info => decodeEnum(info.getValue()) || "-", // Gunakan decodeEnum
+      cell: info => info.getValue() || "-",
     },
   ];
 
@@ -201,13 +160,12 @@ export default function InventoryList() {
 
     const pdfTableRows = data.map(item => [
       item.nama_inventaris,
-      item.nama_brand?.String || '-', // Akses .String
+      item.nama_brand || '-',
       new Date(item.tanggal_beli).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" }),
       `Rp ${item.harga.toLocaleString("id-ID")}`,
-      item.nama_vendor?.String || '-', // Akses .String
-      item.nama_kategori?.String || '-', // Akses .String
-      item.nama_ruangan?.String || '-', // Akses .String
-      decodeEnum(item.status) || '-', // Gunakan decodeEnum
+      item.nama_vendor || '-',
+      item.nama_kategori || '-',
+      item.nama_ruangan || '-',
     ]);
 
     doc.autoTable({
@@ -245,25 +203,19 @@ export default function InventoryList() {
             ))}
           </Table.Head>
           <Table.Body className="divide-y">
-            {data.length === 0 ? (
-                <Table.Row>
-                    <Table.Cell colSpan={columns.length} className="text-center text-gray-500">Tidak ada data inventaris yang tersedia.</Table.Cell>
-                </Table.Row>
-            ) : (
-                table.getRowModel().rows.map(row => (
-                    <Table.Row
-                        key={row.original.id} // Gunakan row.original.id
-                        className="cursor-pointer hover:bg-gray-100"
-                        onClick={() => navigate(`/inventaris/with-relations/${row.original.inventaris_id}`)}
-                    >
-                        {row.getVisibleCells().map(cell => (
-                            <Table.Cell key={cell.id}>
-                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                            </Table.Cell>
-                        ))}
-                    </Table.Row>
-                ))
-            )}
+            {table.getRowModel().rows.map(row => (
+              <Table.Row
+                key={row.id}
+                className="cursor-pointer hover:bg-gray-100"
+                onClick={() => navigate(`/inventaris/with-relations/${row.original.inventaris_id}`)}
+              >
+                {row.getVisibleCells().map(cell => (
+                  <Table.Cell key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </Table.Cell>
+                ))}
+              </Table.Row>
+            ))}
           </Table.Body>
         </Table>
       </div>

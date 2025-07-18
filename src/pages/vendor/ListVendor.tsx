@@ -1,14 +1,31 @@
 import { useEffect, useState } from "react";
 import api from '../../utils/api';
-import { Table } from "flowbite-react";
-import { useNavigate } from "react-router-dom";
+import { Table, Button } from "flowbite-react";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+
+interface SqlNullString {
+  String: string;
+  Valid: boolean;
+}
+
+interface NullableTime {
+  Time: string;
+  Valid: boolean;
+}
 
 interface Vendor {
   vendor_id: string;
   nama_vendor: string;
   alamat: string;
   status: string;
+  id: number;
+  created_at: string;
+  created_by: string;
+  updated_at: NullableTime | null;
+  updated_by: SqlNullString | null;
+  deleted_at: NullableTime | null;
+  deleted_by: SqlNullString | null;
 }
 
 export default function VendorList() {
@@ -16,19 +33,67 @@ export default function VendorList() {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
+  const currentToken = token || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYWRtaW4tdGVzdCIsIm5hbWUiOiJBZG1pbiIsImVtYWlsIjoiYWRtaW5AdGVzdC5jb20iLCJyb2xlX2lkIjoiMTIzNDUifQ.Slightly_Different_Dummy_Token_For_Frontend_Dev";
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await api.get("/vendor", {
-          // headers: { Authorization: `Bearer ${token}` },
+        const res = await api.get<{data: any[], message: string}>("/vendor", {
+          headers: { Authorization: `Bearer ${currentToken}` },
         });
-        setData(res.data.data);
+
+        const getStringValue = (val: any): string => {
+            if (typeof val === 'object' && val !== null && 'String' in val && val.Valid) {
+                return val.String;
+            } else if (typeof val === 'string') {
+                return val;
+            }
+            return "";
+        };
+
+        const getEnumValue = (val: any): string => {
+            if (typeof val === 'string') {
+                return val;
+            } else if (typeof val === 'object' && val !== null) {
+                return String(val);
+            }
+            return "";
+        };
+
+        const transformedData: Vendor[] = res.data.data.map((item: any) => {
+            return {
+                id: item.id,
+                vendor_id: item.vendor_id,
+                nama_vendor: getStringValue(item.nama_vendor),
+                alamat: getStringValue(item.alamat),
+                status: getEnumValue(item.status),
+                created_at: item.created_at,
+                created_by: item.created_by,
+                updated_at: item.updated_at || null,
+                updated_by: item.updated_by || null,
+                deleted_at: item.deleted_at || null,
+                deleted_by: item.deleted_by || null,
+            };
+        });
+
+        setData(transformedData);
+        console.log("Fetched Vendor Data (Transformed):", transformedData);
+
+        if (transformedData.length === 0) {
+            toast.info("Tidak ada data vendor.");
+        }
       } catch (error) {
-        toast.error("Gagal memuat data vendor");
+        console.error("Gagal memuat data vendor:", error);
+        toast.error("Gagal memuat data vendor.");
+        if (axios.isAxiosError(error) && error.response) {
+            console.error("Error Response Data:", error.response.data);
+            console.error("Error Response Status:", error.response.status);
+            console.error("Error Response Headers:", error.response.headers);
+        }
       }
     };
     fetchData();
-  }, [token]);
+  }, [currentToken]);
 
   return (
     <div className="p-6">
@@ -41,17 +106,23 @@ export default function VendorList() {
             <Table.HeadCell>Status</Table.HeadCell>
           </Table.Head>
           <Table.Body className="divide-y">
-            {data.map((item) => (
-              <Table.Row
-                key={item.vendor_id}
-                className="cursor-pointer hover:bg-gray-100"
-                onClick={() => navigate(`/vendor/${item.vendor_id}`)}
-              >
-                <Table.Cell>{item.nama_vendor}</Table.Cell>
-                <Table.Cell>{item.alamat}</Table.Cell>
-                <Table.Cell>{item.status}</Table.Cell>
-              </Table.Row>
-            ))}
+            {data.length === 0 ? (
+                <Table.Row>
+                    <Table.Cell colSpan={3} className="text-center text-gray-500">Tidak ada data vendor yang tersedia.</Table.Cell>
+                </Table.Row>
+            ) : (
+                data.map((item) => (
+                    <Table.Row
+                        key={item.vendor_id}
+                        className="cursor-pointer hover:bg-gray-100"
+                        onClick={() => navigate(`/vendor/${item.vendor_id}`)}
+                    >
+                        <Table.Cell>{item.nama_vendor || "-"}</Table.Cell>
+                        <Table.Cell>{item.alamat || "-"}</Table.Cell>
+                        <Table.Cell>{item.status || "-"}</Table.Cell>
+                    </Table.Row>
+                ))
+            )}
           </Table.Body>
         </Table>
       </div>

@@ -56,8 +56,23 @@ export default function VendorDetail() {
           <p><strong>Status:</strong> {vendor.status}</p>
         </div>
         <div className="flex gap-4 mt-6">
-          <Button color="blue" onClick={() => navigate(`/vendor/edit/${vendor.vendor_id}`)}>Edit</Button>
-          <Button color="failure" onClick={handleDelete}>Delete</Button>
+          {/* Tombol Edit */}
+          <button 
+              type="button" // Type button untuk mencegah submit form jika berada dalam form
+              onClick={() => navigate(`/inventaris/update/${data.inventaris_id}`)}
+              className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" // Gaya Tailwind CSS
+          >
+              Edit
+          </button>
+          
+          {/* Tombol Delete */}
+          <button 
+              type="button" // Type button untuk mencegah submit form jika berada dalam form
+              onClick={handleDelete}
+              className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-2" // Gaya Tailwind CSS, tambah margin kiri
+          >
+              Delete
+          </button>
         </div>
       </Card>
     </div>

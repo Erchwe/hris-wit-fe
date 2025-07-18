@@ -1,0 +1,12 @@
+diff --git a/node_modules/flowbite-react/lib/esm/components/Navbar/NavbarToggle.js b/node_modules/flowbite-react/lib/esm/components/Navbar/NavbarToggle.js
+index d16b841..5357291 100644
+--- a/node_modules/flowbite-react/lib/esm/components/Navbar/NavbarToggle.js
++++ b/node_modules/flowbite-react/lib/esm/components/Navbar/NavbarToggle.js
+@@ -1,6 +1,6 @@
+ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+ import classNames from 'classnames';
+-import { GoThreeBars } from 'react-icons/go';
++import { HiMenu } from 'react-icons/hi';
+ import { mergeDeep } from '../../helpers/mergeDeep';
+ import { useTheme } from '../Flowbite/ThemeContext';
+ import { useNavbarContext } from './NavbarContext';

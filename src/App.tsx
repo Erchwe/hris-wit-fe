@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import AppLayout from "./layouts/AppLayout";
 import Gaji from "./pages/remunerasi/Gaji";
 import Tunjangan from "./pages/remunerasi/Tunjangan";

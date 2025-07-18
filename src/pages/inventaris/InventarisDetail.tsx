@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from '../../utils/api.ts';
 import { toast } from "react-toastify";
-import { Button } from "flowbite-react";
 import Swal from "sweetalert2";
 
 interface InventarisDetail {

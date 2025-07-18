@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import api from '../../utils/api.ts';
+import axios from "axios";
 import { Table, Button } from "flowbite-react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
@@ -20,24 +20,47 @@ interface AutoTableDidDrawPageHookData {
     table: any;
 }
 
+interface SqlNullString {
+  String: string;
+  Valid: boolean;
+}
+
+interface NullableTime {
+  Time: string;
+  Valid: boolean;
+}
+
+// Interface Inventaris yang lebih robust
 interface Inventaris {
   inventaris_id: string;
   nama_inventaris: string;
   tanggal_beli: string;
   harga: number;
-  image_url?: string | null;
+  image_url?: string | null; // Setelah transformasi
 
   brand_id: string;
-  nama_brand: string | null;
+  nama_brand: string | null; // Setelah transformasi
 
   vendor_id: string;
-  nama_vendor: string | null;
+  nama_vendor: string | null; // Setelah transformasi
 
   kategori_id: string;
-  nama_kategori: string | null;
+  nama_kategori: string | null; // Setelah transformasi
 
-  ruangan_id: string;
-  nama_ruangan: string | null;
+  ruangan_id: string; // Ini ID biasa, bukan NullString
+  nama_ruangan: string | null; // Setelah transformasi
+
+  id: number;
+  jumlah: number;
+  keterangan: string | null;
+  old_inventory_code: string | null;
+  status: string; // Setelah transformasi (dari interface{} di Go)
+  created_at: string;
+  created_by: string;
+  updated_at: NullableTime | null;
+  updated_by: string | null; // Setelah transformasi
+  deleted_at: NullableTime | null;
+  deleted_by: string | null; // Setelah transformasi
 }
 
 applyPlugin(jsPDF);
@@ -47,35 +70,80 @@ export default function InventoryList() {
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
+  const currentToken = token || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYWRtaW4tdGVzdCIsIm5hbWUiOiJBZG1pbiIsImVtYWlsIjoiYWRtaW5AdGVzdC5jb20iLCJyb2xlX2lkIjoiMTIzNDUifQ.Slightly_Different_Dummy_Token_For_Frontend_Dev";
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await api.get("/inventaris/with-relations", {
-          headers: { Authorization: `Bearer ${token}` },
+        const res = await axios.get<{data: any[], message: string}>("https://hris-wit-be-api.onrender.com/inventaris/with-relations", {
+          headers: { Authorization: `Bearer ${currentToken}` },
         });
 
-        const cleaned: Inventaris[] = res.data.data.map((item: any) => ({
-          ...item,
-          image_url: item.image_url?.String ?? "",
-          vendor_id: item.vendor_id?.String ?? "",
-          nama_vendor: item.nama_vendor?.String ?? "",
-          brand_id: item.brand_id?.String ?? "",
-          nama_brand: item.nama_brand?.String ?? "",
-          kategori_id: item.kategori_id?.String ?? "",
-          nama_kategori: item.nama_kategori?.String ?? "",
-          ruangan_id: item.ruangan_id?.String ?? "",
-          nama_ruangan: item.nama_ruangan?.String ?? "",
-        }));
+        // --- PERBAIKAN KRUSIAL: Transformasi data yang diterima agar sesuai interface frontend ---
+        const getStringOrNull = (val: any): string | null => {
+            if (typeof val === 'object' && val !== null && 'String' in val && val.Valid) {
+                return val.String;
+            } else if (typeof val === 'string') {
+                return val;
+            }
+            return null;
+        };
 
-        setData(cleaned);
+        const getEnumValue = (val: any): string => {
+            if (typeof val === 'string') {
+                return val;
+            } else if (typeof val === 'object' && val !== null) {
+                return String(val); // Konversi paksa interface{} ke string
+            }
+            return "";
+        };
+
+        const transformedData: Inventaris[] = res.data.data.map((item: any) => {
+            return {
+                id: item.id,
+                inventaris_id: item.inventaris_id,
+                nama_inventaris: item.nama_inventaris,
+                jumlah: item.jumlah,
+                tanggal_beli: item.tanggal_beli,
+                harga: item.harga,
+                image_url: getStringOrNull(item.image_url),
+                brand_id: item.brand_id,
+                nama_brand: getStringOrNull(item.nama_brand),
+                vendor_id: item.vendor_id,
+                nama_vendor: getStringOrNull(item.nama_vendor),
+                kategori_id: item.kategori_id,
+                nama_kategori: getStringOrNull(item.nama_kategori),
+                ruangan_id: item.ruangan_id,
+                nama_ruangan: getStringOrNull(item.nama_ruangan),
+                keterangan: getStringOrNull(item.keterangan),
+                old_inventory_code: getStringOrNull(item.old_inventory_code),
+                status: getEnumValue(item.status),
+                created_at: item.created_at,
+                created_by: item.created_by,
+                updated_at: item.updated_at || null,
+                updated_by: getStringOrNull(item.updated_by),
+                deleted_at: item.deleted_at || null,
+                deleted_by: getStringOrNull(item.deleted_by),
+            };
+        });
+
+        setData(transformedData);
+        console.log("Fetched Inventory Data (Transformed):", transformedData);
+
+        if (transformedData.length === 0) {
+            toast.info("Tidak ada data inventaris.");
+        }
       } catch (error) {
         toast.error("Gagal memuat data inventory");
         console.error("Fetch inventory error:", error);
+        if (axios.isAxiosError(error) && error.response) {
+            console.error("Error Response Data:", error.response.data);
+            console.error("Error Response Status:", error.response.status);
+        }
       }
     };
-
     fetchData();
-  }, [token]);
+  }, [currentToken]);
 
   const columns: ColumnDef<Inventaris>[] = [
     {
@@ -89,136 +157,3 @@ export default function InventoryList() {
         )
       ),
       enableSorting: false,
-      enableColumnFilter: false,
-    },
-    {
-      accessorKey: 'nama_inventaris',
-      header: 'Nama',
-    },
-    {
-      accessorKey: 'nama_brand',
-      header: 'Brand',
-      cell: info => info.getValue() || "-",
-    },
-    {
-      accessorKey: 'tanggal_beli',
-      header: 'Tanggal Beli',
-      cell: info => {
-        const dateString = info.getValue() as string;
-        if (!dateString || isNaN(new Date(dateString).getTime())) {
-            return "-";
-        }
-        return new Date(dateString).toLocaleDateString("id-ID", {
-          day: "2-digit",
-          month: "long",
-          year: "numeric",
-        });
-      },
-    },
-    {
-      accessorKey: 'harga',
-      header: 'Harga',
-      cell: info => {
-          const price = info.getValue() as number;
-          if (typeof price !== 'number' || isNaN(price)) {
-              return "Rp -";
-          }
-          return `Rp ${price.toLocaleString("id-ID")}`;
-      },
-    },
-    {
-      accessorKey: 'nama_vendor',
-      header: 'Vendor',
-      cell: info => info.getValue() || "-",
-    },
-    {
-      accessorKey: 'nama_kategori',
-      header: 'Kategori',
-      cell: info => info.getValue() || "-",
-    },
-    {
-      accessorKey: 'nama_ruangan',
-      header: 'Ruangan',
-      cell: info => info.getValue() || "-",
-    },
-  ];
-
-  const table = useReactTable({
-    data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-  });
-
-  const handleDownloadPdf = () => {
-    const doc = new jsPDF('l', 'mm', 'a4') as any;
-
-    doc.text("Daftar Inventaris", 14, 15);
-
-    const pdfTableHeaders = columns
-      .filter(col => col.header !== 'Gambar')
-      .map(col => col.header as string);
-
-    const pdfTableRows = data.map(item => [
-      item.nama_inventaris,
-      item.nama_brand || '-',
-      new Date(item.tanggal_beli).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" }),
-      `Rp ${item.harga.toLocaleString("id-ID")}`,
-      item.nama_vendor || '-',
-      item.nama_kategori || '-',
-      item.nama_ruangan || '-',
-    ]);
-
-    doc.autoTable({
-      head: [pdfTableHeaders],
-      body: pdfTableRows,
-      startY: 20,
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [200, 200, 200], textColor: [0, 0, 0] },
-      didDrawPage: function (data: AutoTableDidDrawPageHookData) {
-        doc.setFontSize(8);
-        const pageCount = doc.internal.getNumberOfPages();
-        doc.text(`Page ${data.pageNumber} of ${pageCount}`, doc.internal.pageSize.width - 30, doc.internal.pageSize.height - 10);
-      }
-    });
-
-    doc.save("daftar-inventaris.pdf");
-    toast.success("PDF berhasil diunduh!");
-  };
-
-  return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Daftar Inventaris</h1>
-      <div className="flex justify-end mb-4">
-        <Button onClick={handleDownloadPdf} color="blue">
-          Unduh PDF
-        </Button>
-      </div>
-      <div className="overflow-x-auto">
-        <Table hoverable>
-          <Table.Head>
-            {table.getHeaderGroups()[0].headers.map(header => (
-                <Table.HeadCell key={header.id}>
-                    {flexRender(header.column.columnDef.header, header.getContext())}
-                </Table.HeadCell>
-            ))}
-          </Table.Head>
-          <Table.Body className="divide-y">
-            {table.getRowModel().rows.map(row => (
-              <Table.Row
-                key={row.id}
-                className="cursor-pointer hover:bg-gray-100"
-                onClick={() => navigate(`/inventaris/with-relations/${row.original.inventaris_id}`)}
-              >
-                {row.getVisibleCells().map(cell => (
-                  <Table.Cell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </Table.Cell>
-                ))}
-              </Table.Row>
-            ))}
-          </Table.Body>
-        </Table>
-      </div>
-    </div>
-  );
-}

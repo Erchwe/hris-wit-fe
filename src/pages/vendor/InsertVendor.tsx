@@ -141,6 +141,10 @@ export default function CreateVendorForm() {
           Tambah Kontak
         </Button>
 
+        <Button color="blue" type="button">
+          Tambah Kontak
+        </Button>
+
         <button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Submit</button>
       </form>
     </div>

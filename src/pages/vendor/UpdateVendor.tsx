@@ -1,7 +1,7 @@
 import { useEffect, useState, ChangeEvent, FormEvent } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from '../../utils/api';
-import { TextInput, Label, Button, Select } from "flowbite-react";
+import { TextInput, Label, Select } from "flowbite-react";
 import { toast } from "react-toastify";
 
 interface Vendor {

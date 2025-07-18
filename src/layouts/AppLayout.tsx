@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Sidebar, Navbar, Dropdown, Avatar } from "flowbite-react";
 import {
-  HiChartPie,
   HiBriefcase,
   HiCash,
   HiClipboardList,
@@ -40,15 +39,6 @@ export default function AppLayout() {
             </button>
           </div>
           <Sidebar.ItemGroup>
-{/*             <Sidebar.Item
-              icon={StyledHiChartPie}
-              as={Link}
-              to="/dashboard"
-            >
-              Dashboard
-            </Sidebar.Item> */}
-
-            {/* Ganti SidebarFolder dengan Sidebar.Collapse */}
             <Sidebar.Collapse
               icon={StyledHiCash}
               label="Remunerasi Karyawan"

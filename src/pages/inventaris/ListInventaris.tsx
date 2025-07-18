@@ -155,7 +155,6 @@ export default function InventoryList() {
               <p className="text-sm text-gray-600">
                   <strong>Status:</strong> {decodeEnum(item.status) || "-"} {/* Decode enum */}
               </p>
-              // ... (kode lainnya) ...
 
               {item.image_url?.Valid && ( // Akses Valid dan String untuk NullString
                   <div className="mt-2">

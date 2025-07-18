@@ -40,13 +40,13 @@ export default function AppLayout() {
             </button>
           </div>
           <Sidebar.ItemGroup>
-            <Sidebar.Item
+{/*             <Sidebar.Item
               icon={StyledHiChartPie}
               as={Link}
               to="/dashboard"
             >
               Dashboard
-            </Sidebar.Item>
+            </Sidebar.Item> */}
 
             {/* Ganti SidebarFolder dengan Sidebar.Collapse */}
             <Sidebar.Collapse

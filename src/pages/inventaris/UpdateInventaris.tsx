@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import api from '../../utils/api.ts';
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
-import { Label, TextInput, Select, Textarea, FileInput, Button } from "flowbite-react";
+import { Label, TextInput, Select, Textarea, FileInput } from "flowbite-react";
 
 interface Option { id: string; name: string; }
 
@@ -166,7 +166,7 @@ export default function UpdateInventarisPage() {
           {previewUrl && <img src={previewUrl} className="h-32 mt-2 object-contain border rounded" />}
         </div>
 
-        <Button type="submit">Simpan Perubahan</Button>
+        <button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Submit</button>
       </form>
     </div>
   );

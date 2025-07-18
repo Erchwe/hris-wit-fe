@@ -41,7 +41,7 @@ function App() {
     return (
         <Routes>
             {/* <Route path="/" element={<Navigate to="/login" replace />} /> */}
-            <Route path="/" element={<AppLayout />}></Route>
+            <Route path="/" element={<Dashboard/>}></Route>
 
             <Route path="/login" element={<Login />} />
 
@@ -54,7 +54,7 @@ function App() {
             <Route path="/pelamarForm/DetailKaryawan/:id_data_pelamar" element={<DetailKaryawan />} />
 
             <Route path="/" element={<AppLayout />}>
-                <Route path="dashboard" element={<Dashboard />} />
+                {/* <Route path="dashboard" element={<Dashboard />} /> */}
                 <Route path="remunerasi/gaji" element={<Gaji />} />
                 <Route path="remunerasi/tunjangan" element={<Tunjangan />} />
                 <Route path="karyawan/daftarkaryawan" element={<DaftarKaryawan />} />

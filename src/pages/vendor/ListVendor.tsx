@@ -20,7 +20,7 @@ export default function VendorList() {
     const fetchData = async () => {
       try {
         const res = await api.get("/vendor", {
-          headers: { Authorization: `Bearer ${token}` },
+          // headers: { Authorization: `Bearer ${token}` },
         });
         setData(res.data.data);
       } catch (error) {

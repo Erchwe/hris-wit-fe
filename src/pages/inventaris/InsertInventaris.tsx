@@ -2,7 +2,7 @@ import { useEffect, useState, FormEvent, ChangeEvent } from "react";
 import api from '../../utils/api.ts';
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
-import { Button, Select, TextInput, Textarea, Label, FileInput } from "flowbite-react";
+import { Select, TextInput, Textarea, Label, FileInput } from "flowbite-react";
 
 interface Vendor {
   vendor_id: string;
@@ -165,7 +165,7 @@ export default function InsertInventoryForm() {
         <FileInput accept="image/*" onChange={handleImage} />
         {previewUrl && <img src={previewUrl} className="h-32 mt-2 object-contain border rounded" />}
       </div>
-      <Button type="submit">Submit</Button>
+      <button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Submit</button>
     </form>
   );
 }

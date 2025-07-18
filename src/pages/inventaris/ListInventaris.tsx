@@ -1,223 +1,170 @@
 import { useEffect, useState } from "react";
-import api from '../../utils/api.ts';
-import { Table, Button } from "flowbite-react";
+import api from '../../utils/api';
+import { Card } from "flowbite-react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import {
-  useReactTable,
-  getCoreRowModel,
-  flexRender,
-  ColumnDef,
-} from '@tanstack/react-table';
-import jsPDF from 'jspdf';
-import { applyPlugin } from 'jspdf-autotable';
 
-interface AutoTableDidDrawPageHookData {
-    pageNumber: number;
-    pageCount: number;
-    settings: any;
-    cursor: { x: number; y: number };
-    table: any;
+// Helper interfaces for Go's sql.NullString and sql.NullTime JSON output
+interface SqlNullString {
+  String: string;
+  Valid: boolean;
 }
 
+interface NullableTime {
+  Time: string;
+  Valid: boolean;
+}
+
+// Helper to decode Base64 enum values
+const decodeEnum = (data: any): string => {
+  let valueToDecode = '';
+  if (typeof data === 'string') valueToDecode = data;
+  else if (data?.Valid && typeof data.String === 'string') valueToDecode = data.String;
+
+  if (valueToDecode) {
+    try { return atob(valueToDecode); } catch (e) { return valueToDecode; }
+  }
+  return '';
+};
+
+// Inventaris interface to match backend JSON response
 interface Inventaris {
   inventaris_id: string;
   nama_inventaris: string;
   tanggal_beli: string;
   harga: number;
-  image_url?: string | null;
+  image_url?: SqlNullString | null;
 
   brand_id: string;
-  nama_brand: string | null;
+  nama_brand: SqlNullString | null;
 
   vendor_id: string;
-  nama_vendor: string | null;
+  nama_vendor: SqlNullString | null;
 
   kategori_id: string;
-  nama_kategori: string | null;
+  nama_kategori: SqlNullString | null;
 
   ruangan_id: string;
-  nama_ruangan: string | null;
-}
+  nama_ruangan: SqlNullString | null;
 
-applyPlugin(jsPDF);
+  id: number;
+  jumlah: number;
+  keterangan: SqlNullString | null;
+  old_inventory_code: SqlNullString | null;
+  status: string;
+  created_at: string;
+  created_by: string;
+  updated_at: NullableTime | null;
+  updated_by: SqlNullString | null;
+  deleted_at: NullableTime | null;
+  deleted_by: SqlNullString | null;
+}
 
 export default function InventoryList() {
   const [data, setData] = useState<Inventaris[]>([]);
-  const token = localStorage.getItem("token");
   const navigate = useNavigate();
+  const token = localStorage.getItem("token");
+
+  // Hardcoded token for development. Remove/adjust in production.
+  const currentToken = token || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYWRtaW4tdGVzdCIsIm5hbWUiOiJBZG1pbiIsImVtYWlsIjoiYWRtaW5AdGVzdC5jb20iLCJyb2xlX2lkIjoiMTIzNDUifQ.Slightly_Different_Dummy_Token_For_Frontend_Dev";
+
+  // Helper for date formatting
+  const formatDate = (dateString: string): string => {
+    try {
+      const options: Intl.DateTimeFormatOptions = { day: '2-digit', month: 'short', year: 'numeric' };
+      return new Date(dateString).toLocaleDateString('id-ID', options).replace(/ /g, '-');
+    } catch (e) {
+      console.error("Error formatting date:", e);
+      return dateString;
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await api.get("/inventaris/with-relations", {
-          headers: { Authorization: `Bearer ${token}` },
+        const res = await api.get<{data: Inventaris[], message: string}>("/inventaris/with-relations", {
+          headers: { Authorization: `Bearer ${currentToken}` },
         });
 
-        const cleaned: Inventaris[] = res.data.data.map((item: any) => ({
-          ...item,
-          image_url: item.image_url?.String ?? "",
-          vendor_id: item.vendor_id?.String ?? "",
-          nama_vendor: item.nama_vendor?.String ?? "",
-          brand_id: item.brand_id?.String ?? "",
-          nama_brand: item.nama_brand?.String ?? "",
-          kategori_id: item.kategori_id?.String ?? "",
-          nama_kategori: item.nama_kategori?.String ?? "",
-          ruangan_id: item.ruangan_id?.String ?? "",
-          nama_ruangan: item.nama_ruangan?.String ?? "",
-        }));
+        setData(res.data.data); // Set data directly as interfaces match JSON
+        console.log("Fetched Inventory Data:", res.data.data); // Log raw fetched data
 
-        setData(cleaned);
+        if (res.data.data.length === 0) {
+            toast.info("Tidak ada data inventaris.");
+        }
       } catch (error) {
-        toast.error("Gagal memuat data inventory");
-        console.error("Fetch inventory error:", error);
+        console.error("Failed to load inventory data:", error);
+        toast.error("Gagal memuat data inventory.");
       }
     };
-
     fetchData();
-  }, [token]);
+  }, [currentToken]);
 
-  const columns: ColumnDef<Inventaris>[] = [
-    {
-      accessorKey: 'image_url',
-      header: 'Gambar',
-      cell: info => (
-        info.getValue() ? (
-          <img src={info.getValue() as string} alt="Preview" className="h-14 object-contain rounded border" />
-        ) : (
-          "-"
-        )
-      ),
-      enableSorting: false,
-      enableColumnFilter: false,
-    },
-    {
-      accessorKey: 'nama_inventaris',
-      header: 'Nama',
-    },
-    {
-      accessorKey: 'nama_brand',
-      header: 'Brand',
-      cell: info => info.getValue() || "-",
-    },
-    {
-      accessorKey: 'tanggal_beli',
-      header: 'Tanggal Beli',
-      cell: info => {
-        const dateString = info.getValue() as string;
-        if (!dateString || isNaN(new Date(dateString).getTime())) {
-            return "-";
-        }
-        return new Date(dateString).toLocaleDateString("id-ID", {
-          day: "2-digit",
-          month: "long",
-          year: "numeric",
-        });
-      },
-    },
-    {
-      accessorKey: 'harga',
-      header: 'Harga',
-      cell: info => {
-          const price = info.getValue() as number;
-          if (typeof price !== 'number' || isNaN(price)) {
-              return "Rp -";
-          }
-          return `Rp ${price.toLocaleString("id-ID")}`;
-      },
-    },
-    {
-      accessorKey: 'nama_vendor',
-      header: 'Vendor',
-      cell: info => info.getValue() || "-",
-    },
-    {
-      accessorKey: 'nama_kategori',
-      header: 'Kategori',
-      cell: info => info.getValue() || "-",
-    },
-    {
-      accessorKey: 'nama_ruangan',
-      header: 'Ruangan',
-      cell: info => info.getValue() || "-",
-    },
-  ];
-
-  const table = useReactTable({
-    data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-  });
-
-  const handleDownloadPdf = () => {
-    const doc = new jsPDF('l', 'mm', 'a4') as any;
-
-    doc.text("Daftar Inventaris", 14, 15);
-
-    const pdfTableHeaders = columns
-      .filter(col => col.header !== 'Gambar')
-      .map(col => col.header as string);
-
-    const pdfTableRows = data.map(item => [
-      item.nama_inventaris,
-      item.nama_brand || '-',
-      new Date(item.tanggal_beli).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" }),
-      `Rp ${item.harga.toLocaleString("id-ID")}`,
-      item.nama_vendor || '-',
-      item.nama_kategori || '-',
-      item.nama_ruangan || '-',
-    ]);
-
-    doc.autoTable({
-      head: [pdfTableHeaders],
-      body: pdfTableRows,
-      startY: 20,
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [200, 200, 200], textColor: [0, 0, 0] },
-      didDrawPage: function (data: AutoTableDidDrawPageHookData) {
-        doc.setFontSize(8);
-        const pageCount = doc.internal.getNumberOfPages();
-        doc.text(`Page ${data.pageNumber} of ${pageCount}`, doc.internal.pageSize.width - 30, doc.internal.pageSize.height - 10);
-      }
-    });
-
-    doc.save("daftar-inventaris.pdf");
-    toast.success("PDF berhasil diunduh!");
-  };
+  console.log("Rendering InventoryList. Data length:", data.length);
 
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Daftar Inventaris</h1>
-      <div className="flex justify-end mb-4">
+
+      {/* Optionally keep PDF button if jsPDF/autotable are handled globally */}
+      {/* <div className="flex justify-end mb-4">
         <Button onClick={handleDownloadPdf} color="blue">
           Unduh PDF
         </Button>
-      </div>
-      <div className="overflow-x-auto">
-        <Table hoverable>
-          <Table.Head>
-            {table.getHeaderGroups()[0].headers.map(header => (
-                <Table.HeadCell key={header.id}>
-                    {flexRender(header.column.columnDef.header, header.getContext())}
-                </Table.HeadCell>
-            ))}
-          </Table.Head>
-          <Table.Body className="divide-y">
-            {table.getRowModel().rows.map(row => (
-              <Table.Row
-                key={row.id}
-                className="cursor-pointer hover:bg-gray-100"
-                onClick={() => navigate(`/inventaris/with-relations/${row.original.inventaris_id}`)}
-              >
-                {row.getVisibleCells().map(cell => (
-                  <Table.Cell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </Table.Cell>
-                ))}
-              </Table.Row>
-            ))}
-          </Table.Body>
-        </Table>
+      </div> */}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {data.length === 0 ? (
+          <div className="col-span-full text-center text-gray-500 py-10">
+            Tidak ada data inventaris yang tersedia.
+          </div>
+        ) : (
+          data.map((item) => (
+            <Card 
+              key={item.id} 
+              className="cursor-pointer hover:shadow-lg transition-shadow duration-200"
+              onClick={() => navigate(`/inventaris/with-relations/${item.inventaris_id}`)}
+            >
+              <h2 className="text-lg font-semibold mb-2">
+                  {item.nama_inventaris || "Nama Inventaris Tidak Tersedia"}
+              </h2>
+              <p className="text-sm text-gray-600">
+                  <strong>ID:</strong> {item.inventaris_id}
+              </p>
+              {item.nama_brand?.Valid && ( // Access Valid and String for NullString
+                  <p className="text-sm text-gray-600">
+                      <strong>Brand:</strong> {item.nama_brand.String}
+                  </p>
+              )}
+              {item.nama_vendor?.Valid && ( // Access Valid and String for NullString
+                  <p className="text-sm text-gray-600">
+                      <strong>Vendor:</strong> {item.nama_vendor.String}
+                  </p>
+              )}
+              {item.nama_ruangan?.Valid && ( // Access Valid and String for NullString
+                  <p className="text-sm text-gray-600">
+                      <strong>Ruangan:</strong> {item.nama_ruangan.String}
+                  </p>
+              )}
+              <p className="text-sm text-gray-600">
+                  <strong>Tanggal Beli:</strong> {formatDate(item.tanggal_beli)}
+              </p>
+              <p className="text-sm text-gray-600">
+                  <strong>Harga:</strong> Rp {item.harga.toLocaleString('id-ID')}
+              </p>
+              <p className="text-sm text-gray-600">
+                  <strong>Status:</strong> {decodeEnum(item.status) || "-"} {/* Decode enum */}
+              </p>
+              // ... (kode lainnya) ...
+
+              {item.image_url?.Valid && ( // Akses Valid dan String untuk NullString
+                  <div className="mt-2">
+                      <img src={item.image_url.String} alt="Inventaris" className="h-24 object-contain rounded" /> {/* <--- PERBAIKAN DI SINI: Tambahkan ' /' di akhir tag <img> */}
+                  </div>
+              )}
+            </Card>
+          ))
+        )}
       </div>
     </div>
   );

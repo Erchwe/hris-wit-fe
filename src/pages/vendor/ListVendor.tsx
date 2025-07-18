@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import api from '../../utils/api';
-import { Table, Button } from "flowbite-react";
+import { Table } from "flowbite-react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { AxiosError } from "axios";

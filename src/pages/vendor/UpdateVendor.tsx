@@ -1,6 +1,6 @@
 import { useEffect, useState, ChangeEvent, FormEvent } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from '../../utils/api';
 import { TextInput, Label, Button, Select } from "flowbite-react";
 import { toast } from "react-toastify";
 
@@ -26,7 +26,7 @@ export default function UpdateVendor() {
   useEffect(() => {
     const fetchVendor = async () => {
       try {
-        const res = await axios.get(`http://localhost:6969/vendor/${id}`, {
+        const res = await api.get(`/vendor/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setForm(res.data.data);
@@ -44,8 +44,8 @@ export default function UpdateVendor() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     try {
-      await axios.put(
-        `http://localhost:6969/vendor/${id}`,
+      await api.put(
+        `/vendor/${id}`,
         {
           ...form,
           updated_by: "admin", // sesuaikan dengan user login jika tersedia

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from '../../utils/api';
 import { Table } from "flowbite-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -19,7 +19,7 @@ export default function VendorList() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axios.get("http://localhost:6969/vendor", {
+        const res = await api.get("/vendor", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setData(res.data.data);

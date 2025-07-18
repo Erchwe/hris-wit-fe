@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from '../../utils/api';
 import { Button, Card } from "flowbite-react";
 import { toast } from "react-toastify";
 
@@ -20,7 +20,7 @@ export default function VendorDetail() {
   useEffect(() => {
     const fetchDetail = async () => {
       try {
-        const res = await axios.get(`http://localhost:6969/vendor/${id}`, {
+        const res = await api.get(`/vendor/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setVendor(res.data.data);
@@ -34,7 +34,7 @@ export default function VendorDetail() {
   const handleDelete = async () => {
     if (!confirm("Yakin ingin menghapus vendor ini?")) return;
     try {
-      await axios.delete(`http://localhost:6969/vendor-kontak/delete/${id}`, {
+      await api.delete(`/vendor-kontak/delete/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success("Vendor berhasil dihapus");

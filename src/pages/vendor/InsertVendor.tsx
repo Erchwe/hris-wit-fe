@@ -1,5 +1,5 @@
 import { useState, FormEvent, ChangeEvent } from "react";
-import axios from "axios";
+import api from '../../utils/api';
 import Swal from "sweetalert2";
 import { TextInput, Label, Textarea, Button, Select } from "flowbite-react";
 
@@ -64,7 +64,7 @@ export default function CreateVendorForm() {
     };
 
     try {
-      await axios.post("http://localhost:6969/vendor-kontak/insert", payload, {
+      await api.post("vendor-kontak/insert", payload, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",

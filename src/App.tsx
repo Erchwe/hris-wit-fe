@@ -40,7 +40,8 @@ console.log('DEBUG: VITE_API_BASE_URL resolved to:', import.meta.env.VITE_API_BA
 function App() {
     return (
         <Routes>
-            <Route path="/" element={<Navigate to="/login" replace />} />
+            {/* <Route path="/" element={<Navigate to="/login" replace />} /> */}
+            <Route path="/" element={<AppLayout />}></Route>
 
             <Route path="/login" element={<Login />} />
 

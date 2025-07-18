@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import api from '../../utils/api';
-import { Table } from "flowbite-react";
+import { Card } from "flowbite-react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { AxiosError } from "axios";
@@ -78,53 +78,39 @@ export default function VendorList() {
   console.log("Rendering VendorList component. Data length:", data.length);
 
 
-  const firstItem = data.length > 0 ? data[0] : null;
-
-
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Daftar Vendor</h1>
-
-      {firstItem && (
-          <div className="mb-4 p-3 border border-blue-300 bg-blue-50 rounded-md">
-              <h2 className="text-lg font-semibold text-blue-800">Uji Tampil Data Pertama:</h2>
-              <p>ID: {firstItem.vendor_id}</p>
-              <p>Nama: {firstItem.nama_vendor?.Valid ? firstItem.nama_vendor.String : "N/A"}</p>
-              <p>Alamat: {firstItem.alamat?.Valid ? firstItem.alamat.String : "N/A"}</p>
-              <p>Status: {decodeEnum(firstItem.status) || "N/A"}</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {data.length === 0 ? (
+          <div className="col-span-full text-center text-gray-500 py-10">
+            Tidak ada data vendor yang tersedia.
           </div>
-      )}
-
-      <div className="overflow-x-auto">
-        <Table>
-          <Table.Head>
-            <Table.HeadCell>Nama Vendor</Table.HeadCell>
-            <Table.HeadCell>Alamat</Table.HeadCell>
-            <Table.HeadCell>Status</Table.HeadCell>
-          </Table.Head>
-          <Table.Body className="divide-y">
-            {data.length === 0 ? (
-                <Table.Row>
-                    <Table.Cell colSpan={3} className="text-center text-gray-500">Tidak ada data vendor yang tersedia.</Table.Cell>
-                </Table.Row>
-            ) : (
-                data.map((item, index) => { // Mengubah menjadi blok statement dengan kurung kurawal {}
-                    console.log(`Mapping item ${index}:`, item); // <--- console.log() dipindahkan ke dalam blok
-                    return ( // Harus ada return untuk JSX
-                        <Table.Row
-                            key={item.vendor_id}
-                            className="cursor-pointer hover:bg-gray-100"
-                            onClick={() => navigate(`/vendor/${item.vendor_id}`)}
-                        >
-                            <Table.Cell>{item.nama_vendor?.Valid ? item.nama_vendor.String : "-"}</Table.Cell>
-                            <Table.Cell>{item.alamat?.Valid ? item.alamat.String : "-"}</Table.Cell>
-                            <Table.Cell>{decodeEnum(item.status) || "-"}</Table.Cell>
-                        </Table.Row>
-                    );
-                })
-            )}
-          </Table.Body>
-        </Table>
+        ) : (
+          data.map((item, index) => {
+            console.log(`Mapping item ${index} for Card:`, item);
+            return (
+              <Card 
+                key={item.vendor_id} 
+                className="cursor-pointer hover:shadow-lg transition-shadow duration-200"
+                onClick={() => navigate(`/vendor/${item.vendor_id}`)} // Navigate ke detail vendor
+              >
+                <h2 className="text-lg font-semibold mb-2">
+                    {item.nama_vendor?.Valid ? item.nama_vendor.String : "Nama Vendor Tidak Tersedia"}
+                </h2>
+                <p className="text-sm text-gray-600">
+                    <strong>ID Vendor:</strong> {item.vendor_id}
+                </p>
+                <p className="text-sm text-gray-600">
+                    <strong>Alamat:</strong> {item.alamat?.Valid ? item.alamat.String : "-"}
+                </p>
+                <p className="text-sm text-gray-600">
+                    <strong>Status:</strong> {decodeEnum(item.status) || "-"}
+                </p>
+              </Card>
+            );
+          })
+        )}
       </div>
     </div>
   );

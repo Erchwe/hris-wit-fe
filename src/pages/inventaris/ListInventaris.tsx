@@ -106,13 +106,6 @@ export default function InventoryList() {
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Daftar Inventaris</h1>
 
-      {/* Optionally keep PDF button if jsPDF/autotable are handled globally */}
-      {/* <div className="flex justify-end mb-4">
-        <Button onClick={handleDownloadPdf} color="blue">
-          Unduh PDF
-        </Button>
-      </div> */}
-
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {data.length === 0 ? (
           <div className="col-span-full text-center text-gray-500 py-10">
@@ -153,12 +146,12 @@ export default function InventoryList() {
                   <strong>Harga:</strong> Rp {item.harga.toLocaleString('id-ID')}
               </p>
               <p className="text-sm text-gray-600">
-                  <strong>Status:</strong> {decodeEnum(item.status) || "-"} {/* Decode enum */}
+                  <strong>Status:</strong> {decodeEnum(item.status) || "-"}
               </p>
 
               {item.image_url?.Valid && ( // Akses Valid dan String untuk NullString
                   <div className="mt-2">
-                      <img src={item.image_url.String} alt="Inventaris" className="h-24 object-contain rounded" /> {/* <--- PERBAIKAN DI SINI: Tambahkan ' /' di akhir tag <img> */}
+                      <img src={item.image_url.String} className="h-24 object-contain rounded" />
                   </div>
               )}
             </Card>

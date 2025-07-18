@@ -4,29 +4,45 @@ import { Table, Button } from "flowbite-react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
+// Interface untuk SqlNullString dari Proyek.tsx
 interface SqlNullString {
   String: string;
   Valid: boolean;
 }
 
+// Interface untuk NullableTime dari Proyek.tsx
 interface NullableTime {
   Time: string;
   Valid: boolean;
 }
 
+// Interface Vendor disesuaikan dengan pola Proyek.tsx
 interface Vendor {
   vendor_id: string;
-  nama_vendor: string;
-  alamat: string;
-  status: string;
+  nama_vendor: SqlNullString; // Jika nama_vendor bisa NULL
+  alamat: SqlNullString;      // Jika alamat bisa NULL
+  status: any;                // Untuk ENUM, gunakan 'any' atau buat interface lebih spesifik jika perlu decode Enum
   id: number;
   created_at: string;
   created_by: string;
-  updated_at: NullableTime | null;
-  updated_by: SqlNullString | null;
-  deleted_at: NullableTime | null;
-  deleted_by: SqlNullString | null;
+  updated_at: NullableTime;
+  updated_by: SqlNullString;
+  deleted_at: NullableTime;
+  deleted_by: SqlNullString;
+  // Tambahkan field lain dari respons backend jika ada
 }
+
+// Gunakan fungsi decodeEnum dari Proyek.tsx
+const decodeEnum = (data: any): string => {
+  let valueToDecode = '';
+  if (typeof data === 'string') valueToDecode = data;
+  else if (data?.Valid && typeof data.String === 'string') valueToDecode = data.String;
+
+  if (valueToDecode) {
+    try { return atob(valueToDecode); } catch (e) { return valueToDecode; }
+  }
+  return '';
+};
 
 export default function VendorList() {
   const [data, setData] = useState<Vendor[]>([]);
@@ -38,48 +54,14 @@ export default function VendorList() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await api.get<{data: any[], message: string}>("/vendor", {
+        const res = await api.get<{data: Vendor[], message: string}>("/vendor", { // Tipekan res.data.data langsung ke Vendor[]
           headers: { Authorization: `Bearer ${currentToken}` },
         });
 
-        const getStringValue = (val: any): string => {
-            if (typeof val === 'object' && val !== null && 'String' in val && val.Valid) {
-                return val.String;
-            } else if (typeof val === 'string') {
-                return val;
-            }
-            return "";
-        };
+        setData(res.data.data); // Hapus transformasi .map() jika interface sudah cocok
+        console.log("Fetched Vendor Data:", res.data.data); // Log data mentah
 
-        const getEnumValue = (val: any): string => {
-            if (typeof val === 'string') {
-                return val;
-            } else if (typeof val === 'object' && val !== null) {
-                return String(val);
-            }
-            return "";
-        };
-
-        const transformedData: Vendor[] = res.data.data.map((item: any) => {
-            return {
-                id: item.id,
-                vendor_id: item.vendor_id,
-                nama_vendor: getStringValue(item.nama_vendor),
-                alamat: getStringValue(item.alamat),
-                status: getEnumValue(item.status),
-                created_at: item.created_at,
-                created_by: item.created_by,
-                updated_at: item.updated_at || null,
-                updated_by: item.updated_by || null,
-                deleted_at: item.deleted_at || null,
-                deleted_by: item.deleted_by || null,
-            };
-        });
-
-        setData(transformedData);
-        console.log("Fetched Vendor Data (Transformed):", transformedData);
-
-        if (transformedData.length === 0) {
+        if (res.data.data.length === 0) {
             toast.info("Tidak ada data vendor.");
         }
       } catch (error) {
@@ -88,7 +70,6 @@ export default function VendorList() {
         if (axios.isAxiosError(error) && error.response) {
             console.error("Error Response Data:", error.response.data);
             console.error("Error Response Status:", error.response.status);
-            console.error("Error Response Headers:", error.response.headers);
         }
       }
     };
@@ -117,9 +98,10 @@ export default function VendorList() {
                         className="cursor-pointer hover:bg-gray-100"
                         onClick={() => navigate(`/vendor/${item.vendor_id}`)}
                     >
-                        <Table.Cell>{item.nama_vendor || "-"}</Table.Cell>
-                        <Table.Cell>{item.alamat || "-"}</Table.Cell>
-                        <Table.Cell>{item.status || "-"}</Table.Cell>
+                        {/* Akses .String dari SqlNullString, dan decodeEnum untuk status */}
+                        <Table.Cell>{item.nama_vendor?.String || "-"}</Table.Cell>
+                        <Table.Cell>{item.alamat?.String || "-"}</Table.Cell>
+                        <Table.Cell>{decodeEnum(item.status) || "-"}</Table.Cell>
                     </Table.Row>
                 ))
             )}

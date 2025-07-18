@@ -41,7 +41,7 @@ function App() {
     return (
         <Routes>
             {/* <Route path="/" element={<Navigate to="/login" replace />} /> */}
-            <Route path="/" element={<Dashboard/>}></Route>
+            <Route path="/" element={<AppLayout />}></Route>
 
             <Route path="/login" element={<Login />} />
 

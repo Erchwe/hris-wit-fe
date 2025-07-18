@@ -17,9 +17,9 @@ interface NullableTime {
 
 interface Vendor {
   vendor_id: string;
-  nama_vendor: SqlNullString; // Diubah ke SqlNullString sesuai JSON
-  alamat: SqlNullString;      // Diubah ke SqlNullString sesuai JSON
-  status: any;                // Menggunakan 'any' untuk ENUMs
+  nama_vendor: SqlNullString;
+  alamat: SqlNullString;
+  status: any;
   id: number;
   created_at: string;
   created_by: string;
@@ -78,16 +78,13 @@ export default function VendorList() {
   console.log("Rendering VendorList component. Data length:", data.length);
 
 
-  // --- PERUBAHAN: Forced Render untuk item pertama ---
   const firstItem = data.length > 0 ? data[0] : null;
-  // --- AKHIR PERUBAHAN ---
 
 
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Daftar Vendor</h1>
 
-      {/* Tampilkan item pertama secara hardcode di luar tabel */}
       {firstItem && (
           <div className="mb-4 p-3 border border-blue-300 bg-blue-50 rounded-md">
               <h2 className="text-lg font-semibold text-blue-800">Uji Tampil Data Pertama:</h2>
@@ -112,19 +109,20 @@ export default function VendorList() {
                     <Table.Cell colSpan={3} className="text-center text-gray-500">Tidak ada data vendor yang tersedia.</Table.Cell>
                 </Table.Row>
             ) : (
-                data.map((item, index) => (
-                    console.log(`Mapping item ${index}:`, item),
-                    <Table.Row
-                        key={item.vendor_id}
-                        className="cursor-pointer hover:bg-gray-100"
-                        onClick={() => navigate(`/vendor/${item.vendor_id}`)}
-                    >
-                        {/* AKSES DENGAN .Valid ? .String : "-" sesuai pola DashboardInventaris */}
-                        <Table.Cell>{item.nama_vendor?.Valid ? item.nama_vendor.String : "-"}</Table.Cell>
-                        <Table.Cell>{item.alamat?.Valid ? item.alamat.String : "-"}</Table.Cell>
-                        <Table.Cell>{decodeEnum(item.status) || "-"}</Table.Cell>
-                    </Table.Row>
-                ))
+                data.map((item, index) => { // Mengubah menjadi blok statement dengan kurung kurawal {}
+                    console.log(`Mapping item ${index}:`, item); // <--- console.log() dipindahkan ke dalam blok
+                    return ( // Harus ada return untuk JSX
+                        <Table.Row
+                            key={item.vendor_id}
+                            className="cursor-pointer hover:bg-gray-100"
+                            onClick={() => navigate(`/vendor/${item.vendor_id}`)}
+                        >
+                            <Table.Cell>{item.nama_vendor?.Valid ? item.nama_vendor.String : "-"}</Table.Cell>
+                            <Table.Cell>{item.alamat?.Valid ? item.alamat.String : "-"}</Table.Cell>
+                            <Table.Cell>{decodeEnum(item.status) || "-"}</Table.Cell>
+                        </Table.Row>
+                    );
+                })
             )}
           </Table.Body>
         </Table>

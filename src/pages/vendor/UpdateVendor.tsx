@@ -96,7 +96,7 @@ export default function UpdateVendor() {
       </div>
 
       <div className="flex justify-end">
-        <Button type="submit">Simpan Perubahan</Button>
+        <button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Submit</button>
       </div>
     </form>
   );

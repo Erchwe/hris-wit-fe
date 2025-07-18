@@ -125,8 +125,21 @@ export default function InventarisDetailPage() {
         <p><strong>Ruangan:</strong> {data.nama_ruangan || "-"}</p>
       </div>
       <div className="mt-6 flex gap-4">
-        <Button color="blue" onClick={() => navigate(`/inventaris/update/${data.inventaris_id}`)}>Edit</Button>
-        <Button color="failure" onClick={handleDelete}>Delete</Button>
+        <button 
+            type="button" 
+            onClick={() => navigate(`/inventaris/update/${data.inventaris_id}`)}
+            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" // Gaya Tailwind CSS
+        >
+            Edit
+        </button>
+
+        <button 
+            type="button" 
+            onClick={handleDelete}
+            className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-2" // Gaya Tailwind CSS, tambah margin kiri
+        >
+            Delete
+        </button>
       </div>
     </div>
   );
